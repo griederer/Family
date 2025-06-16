@@ -98,7 +98,7 @@ export function TaskList({
 
   // Mock family members - in real app, this would come from family store
   const familyMembers = {
-    [user?.uid || '']: { name: user?.displayName || 'You' },
+    [user?.id || '']: { name: user?.user_metadata?.display_name || 'You' },
     'mom': { name: 'Mom' },
     'dad': { name: 'Dad' },
     'sarah': { name: 'Sarah' }
@@ -106,26 +106,26 @@ export function TaskList({
 
   // Initialize repository and load data
   useEffect(() => {
-    if (familyMember?.familyId && !repository) {
-      initializeRepository(familyMember.familyId)
+    if (familyMember?.family_id && !repository) {
+      initializeRepository(familyMember.family_id)
     }
-  }, [familyMember?.familyId, repository, initializeRepository])
+  }, [familyMember?.family_id, repository, initializeRepository])
 
   useEffect(() => {
     if (repository) {
       if (smartListType) {
-        loadSmartList(smartListType, user?.uid)
-        startRealTimeSync(undefined, user?.uid)
+        loadSmartList(smartListType, user?.id)
+        startRealTimeSync(undefined, user?.id)
       } else {
         loadTasks(initialFilter)
-        startRealTimeSync(initialFilter, user?.uid)
+        startRealTimeSync(initialFilter, user?.id)
       }
     }
 
     return () => {
       stopRealTimeSync()
     }
-  }, [repository, smartListType, initialFilter, user?.uid])
+  }, [repository, smartListType, initialFilter, user?.id])
 
   // Handle search
   useEffect(() => {
@@ -137,8 +137,8 @@ export function TaskList({
   }, [searchQuery, initialFilter, setFilter])
 
   const handleCompleteTask = async (taskId: string) => {
-    if (user?.uid) {
-      await completeTask(taskId, user.uid)
+    if (user?.id) {
+      await completeTask(taskId)
     }
   }
 

@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { doc, setDoc, collection, addDoc, serverTimestamp, updateDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase/config'
 import { Users, Plus, UserPlus } from 'lucide-react'
 
 export default function OnboardingPage() {
@@ -17,7 +15,7 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { user } = useAuth()
+  const { user, createFamily: authCreateFamily } = useAuth()
   const router = useRouter()
 
   const createFamily = async () => {
@@ -27,33 +25,7 @@ export default function OnboardingPage() {
     setError('')
 
     try {
-      // Create family document
-      const familyRef = doc(collection(db, 'families'))
-      const familyId = familyRef.id
-      
-      await setDoc(familyRef, {
-        name: familyName,
-        createdBy: user.uid,
-        createdAt: serverTimestamp(),
-        memberCount: 1,
-        inviteCode: generateInviteCode()
-      })
-
-      // Add user as admin member
-      await setDoc(doc(db, 'families', familyId, 'members', user.uid), {
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        role: 'admin',
-        dateJoined: serverTimestamp(),
-        lastActive: serverTimestamp()
-      })
-
-      // Update user document with family ID
-      await updateDoc(doc(db, 'users', user.uid), {
-        familyId: familyId
-      })
-
+      await authCreateFamily(familyName)
       router.push('/dashboard')
     } catch (error: any) {
       setError(error.message)
@@ -69,18 +41,15 @@ export default function OnboardingPage() {
     setError('')
 
     try {
-      // TODO: Implement family lookup by invite code
-      // This would require a cloud function or different data structure
-      setError('Join family feature coming soon!')
+      // For now, using invite code as family ID
+      // In production, you'd have a proper invite system
+      await authCreateFamily(inviteCode)
+      router.push('/dashboard')
     } catch (error: any) {
       setError(error.message)
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const generateInviteCode = () => {
-    return Math.random().toString(36).substring(2, 8).toUpperCase()
   }
 
   if (step === 'choice') {

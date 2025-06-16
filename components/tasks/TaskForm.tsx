@@ -35,14 +35,14 @@ export function TaskForm({ task, onSave, onCancel, familyMembers }: TaskFormProp
   const [description, setDescription] = useState(task?.description || '')
   const [priority, setPriority] = useState<TaskPriority>(task?.priority || 'normal')
   const [dueDate, setDueDate] = useState(
-    task?.dueDate ? new Date(task.dueDate as any).toISOString().split('T')[0] : ''
+    task?.due_date ? task.due_date.split('T')[0] : ''
   )
-  const [dueTime, setDueTime] = useState(task?.dueTime || '')
-  const [assignedTo, setAssignedTo] = useState<string[]>(task?.assignedTo || [])
+  const [dueTime, setDueTime] = useState(task?.due_time || '')
+  const [assignedTo, setAssignedTo] = useState<string[]>(task?.assigned_to || [])
   const [tags, setTags] = useState<string[]>(task?.tags || [])
   const [newTag, setNewTag] = useState('')
   const [estimatedDuration, setEstimatedDuration] = useState(
-    task?.timeTracking?.estimatedDuration?.toString() || ''
+    task?.estimated_duration?.toString() || ''
   )
 
   const handleSave = () => {
@@ -52,13 +52,11 @@ export function TaskForm({ task, onSave, onCancel, familyMembers }: TaskFormProp
       title: title.trim(),
       description: description.trim() || undefined,
       priority,
-      assignedTo,
+      assigned_to: assignedTo,
       tags,
-      dueDate: dueDate ? new Date(dueDate + 'T00:00:00') as any : undefined,
-      dueTime: dueTime || undefined,
-      timeTracking: estimatedDuration ? {
-        estimatedDuration: parseInt(estimatedDuration)
-      } : undefined
+      due_date: dueDate || undefined,
+      due_time: dueTime || undefined,
+      estimated_duration: estimatedDuration ? parseInt(estimatedDuration) : undefined
     }
 
     onSave(taskData)

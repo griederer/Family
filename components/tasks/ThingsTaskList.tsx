@@ -6,7 +6,6 @@ import { TaskForm } from './TaskForm'
 import { Task, TaskFilter, SmartListType } from '@/lib/types/task'
 import { useTaskStore } from '@/lib/store/useTaskStore'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { Timestamp } from 'firebase/firestore'
 import { 
   Plus, 
   Search, 
@@ -88,7 +87,7 @@ export function ThingsTaskList({ smartListType, initialFilter }: ThingsTaskListP
 
   // Mock family members
   const familyMembers = {
-    [user?.uid || '']: { name: user?.displayName || 'You' },
+    [user?.id || '']: { name: user?.user_metadata?.display_name || 'You' },
     'mom': { name: 'Mom' },
     'dad': { name: 'Dad' },
     'sarah': { name: 'Sarah' }
@@ -96,26 +95,26 @@ export function ThingsTaskList({ smartListType, initialFilter }: ThingsTaskListP
 
   // Initialize repository and load data
   useEffect(() => {
-    if (familyMember?.familyId && !repository) {
-      initializeRepository(familyMember.familyId)
+    if (familyMember?.family_id && !repository) {
+      initializeRepository(familyMember.family_id)
     }
-  }, [familyMember?.familyId, repository, initializeRepository])
+  }, [familyMember?.family_id, repository, initializeRepository])
 
   useEffect(() => {
     if (repository) {
       if (smartListType) {
-        loadSmartList(smartListType, user?.uid)
-        startRealTimeSync(undefined, user?.uid)
+        loadSmartList(smartListType, user?.id)
+        startRealTimeSync(undefined, user?.id)
       } else {
         loadTasks(initialFilter)
-        startRealTimeSync(initialFilter, user?.uid)
+        startRealTimeSync(initialFilter, user?.id)
       }
     }
 
     return () => {
       stopRealTimeSync()
     }
-  }, [repository, smartListType, initialFilter, user?.uid])
+  }, [repository, smartListType, initialFilter, user?.id])
 
   // Handle search
   useEffect(() => {
@@ -127,9 +126,7 @@ export function ThingsTaskList({ smartListType, initialFilter }: ThingsTaskListP
   }, [searchQuery, initialFilter, setFilter])
 
   const handleCompleteTask = async (taskId: string) => {
-    if (user?.uid) {
-      await completeTask(taskId, user.uid)
-    }
+    await completeTask(taskId)
   }
 
   const handleEditTask = (task: Task) => {
@@ -143,23 +140,22 @@ export function ThingsTaskList({ smartListType, initialFilter }: ThingsTaskListP
   }
 
   const handleSaveTask = async (taskData: Partial<Task>) => {
-    if (!user?.uid) return
+    if (!user?.id) return
 
     try {
       if (editingTask) {
         // Update existing task
-        await updateTask(editingTask.id, taskData, user.uid)
+        await updateTask(editingTask.id, taskData)
       } else {
         // Create new task
         const newTaskData = {
           ...taskData,
-          familyId: familyMember?.familyId || '',
-          createdBy: user.uid,
-          modifiedBy: user.uid,
-          assignedTo: taskData.assignedTo || [user.uid],
+          family_id: familyMember?.family_id || '',
+          created_by: user.id,
+          assigned_to: taskData.assigned_to || [user.id],
           status: 'pending' as const,
           tags: taskData.tags || [],
-          dueDate: taskData.dueDate as any,
+          due_date: taskData.due_date,
         }
         await createTask(newTaskData as any)
       }

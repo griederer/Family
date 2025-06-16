@@ -32,7 +32,7 @@ const priorityColors = {
 export function TaskItem({ task, onComplete, onEdit, familyMembers }: TaskItemProps) {
   const [isHovered, setIsHovered] = useState(false)
   const isCompleted = task.status === 'completed'
-  const isOverdue = task.dueDate && new Date(task.dueDate.toDate()) < new Date() && !isCompleted
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !isCompleted
 
   const handleComplete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -44,16 +44,16 @@ export function TaskItem({ task, onComplete, onEdit, familyMembers }: TaskItemPr
   }
 
   const formatDueDate = () => {
-    if (!task.dueDate) return null
-    const date = task.dueDate.toDate()
+    if (!task.due_date) return null
+    const date = new Date(task.due_date)
     const today = new Date()
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
     
     if (date.toDateString() === today.toDateString()) {
-      return task.dueTime ? `Today at ${task.dueTime}` : 'Today'
+      return task.due_time ? `Today at ${task.due_time}` : 'Today'
     } else if (date.toDateString() === tomorrow.toDateString()) {
-      return task.dueTime ? `Tomorrow at ${task.dueTime}` : 'Tomorrow'
+      return task.due_time ? `Tomorrow at ${task.due_time}` : 'Tomorrow'
     } else {
       return format(date, 'MMM d')
     }
@@ -106,12 +106,6 @@ export function TaskItem({ task, onComplete, onEdit, familyMembers }: TaskItemPr
               {task.priority !== 'normal' && (
                 <Flag className={cn('w-3 h-3', priorityColors[task.priority])} />
               )}
-              {task.attachments && task.attachments.length > 0 && (
-                <Paperclip className="w-3 h-3 text-muted-foreground" />
-              )}
-              {task.comments && task.comments.length > 0 && (
-                <MessageSquare className="w-3 h-3 text-muted-foreground" />
-              )}
             </div>
           </div>
 
@@ -119,7 +113,7 @@ export function TaskItem({ task, onComplete, onEdit, familyMembers }: TaskItemPr
           <div className="flex items-center justify-between mt-1">
             <div className="flex items-center space-x-3 text-xs text-muted-foreground">
               {/* Due Date */}
-              {task.dueDate && (
+              {task.due_date && (
                 <div className={cn(
                   'flex items-center space-x-1',
                   isOverdue && 'text-destructive'
@@ -130,10 +124,10 @@ export function TaskItem({ task, onComplete, onEdit, familyMembers }: TaskItemPr
               )}
 
               {/* Time Estimate */}
-              {task.timeTracking?.estimatedDuration && (
+              {task.estimated_duration && (
                 <div className="flex items-center space-x-1">
                   <Clock className="w-3 h-3" />
-                  <span>{task.timeTracking.estimatedDuration}m</span>
+                  <span>{task.estimated_duration}m</span>
                 </div>
               )}
 
@@ -147,13 +141,13 @@ export function TaskItem({ task, onComplete, onEdit, familyMembers }: TaskItemPr
             </div>
 
             {/* Assigned Users */}
-            {task.assignedTo.length > 0 && (
+            {task.assigned_to.length > 0 && (
               <div className="flex items-center space-x-1">
                 <Users className="w-3 h-3 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">
-                  {task.assignedTo.length === 1 
-                    ? familyMembers[task.assignedTo[0]]?.name || 'Someone'
-                    : `${task.assignedTo.length} people`
+                  {task.assigned_to.length === 1 
+                    ? familyMembers[task.assigned_to[0]]?.name || 'Someone'
+                    : `${task.assigned_to.length} people`
                   }
                 </span>
               </div>

@@ -14,17 +14,17 @@ A modern family management application inspired by Things 3, built with Next.js 
 ## Tech Stack
 
 - **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Backend**: Firebase (Auth, Firestore, Realtime Database)
+- **Backend**: Supabase (Auth, PostgreSQL, Real-time)
 - **Deployment**: Vercel
 - **State Management**: Zustand
-- **Real-time**: Firebase Realtime Database
+- **Real-time**: Supabase Real-time subscriptions
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- Firebase project
+- Supabase account
 - Vercel account (for deployment)
 
 ### Installation
@@ -41,15 +41,10 @@ npm install
 ```
 
 3. Set up environment variables:
-Create a `.env.local` file with your Firebase configuration:
+Create a `.env.local` file with your Supabase configuration:
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 4. Run the development server:
@@ -59,13 +54,12 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
 
-### Firebase Setup
+### Supabase Setup
 
-1. Create a Firebase project
-2. Enable Authentication (Email/Password, Google)
-3. Create Firestore database
-4. Set up Realtime Database
-5. Configure security rules (included in `firestore.rules`)
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Go to SQL Editor and run the schema from `supabase/schema.sql`
+3. Enable Email and Google OAuth in Authentication settings
+4. Get your project URL and anon key from Settings > API
 
 ### Deployment
 

@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { CheckSquare, Calendar, ShoppingCart, DollarSign, LogOut } from 'lucide-react'
 
 export default function DashboardPage() {
-  const { user, familyMember, logout } = useAuth()
+  const { user, familyMember, signOut } = useAuth()
 
   const handleLogout = async () => {
-    await logout()
+    await signOut()
   }
 
   return (
@@ -19,7 +19,7 @@ export default function DashboardPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-semibold mb-2">
-              Welcome back, {user?.displayName?.split(' ')[0] || 'Family Member'}!
+              Welcome back, {user?.user_metadata?.display_name?.split(' ')[0] || familyMember?.display_name || 'Family Member'}!
             </h1>
             <p className="text-sm text-muted-foreground">
               {familyMember?.role === 'admin' && 'Family Administrator'}

@@ -47,7 +47,7 @@ export function TaskCard({
 }: TaskCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const isCompleted = task.status === 'completed'
-  const isOverdue = task.dueDate && new Date(task.dueDate.toDate()) < new Date() && !isCompleted
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !isCompleted
 
   const handleComplete = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -138,47 +138,33 @@ export function TaskCard({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 text-xs text-muted-foreground">
               {/* Due Date */}
-              {task.dueDate && (
+              {task.due_date && (
                 <div className={cn(
                   'flex items-center space-x-1',
                   isOverdue && 'text-destructive'
                 )}>
                   <Calendar className="w-3 h-3" />
                   <span>
-                    {format(task.dueDate.toDate(), 'MMM d')}
-                    {task.dueTime && ` at ${task.dueTime}`}
+                    {format(new Date(task.due_date), 'MMM d')}
+                    {task.due_time && ` at ${task.due_time}`}
                   </span>
                 </div>
               )}
 
               {/* Time Tracking */}
-              {task.timeTracking?.estimatedDuration && (
+              {task.estimated_duration && (
                 <div className="flex items-center space-x-1">
                   <Timer className="w-3 h-3" />
-                  <span>{task.timeTracking.estimatedDuration}m</span>
+                  <span>{task.estimated_duration}m</span>
                 </div>
               )}
 
-              {/* Comments Count */}
-              {task.comments && task.comments.length > 0 && (
-                <div className="flex items-center space-x-1">
-                  <MessageSquare className="w-3 h-3" />
-                  <span>{task.comments.length}</span>
-                </div>
-              )}
 
-              {/* Attachments Count */}
-              {task.attachments && task.attachments.length > 0 && (
-                <div className="flex items-center space-x-1">
-                  <Paperclip className="w-3 h-3" />
-                  <span>{task.attachments.length}</span>
-                </div>
-              )}
             </div>
 
             {/* Assigned Users */}
             <div className="flex items-center space-x-1">
-              {task.assignedTo.slice(0, 3).map((userId, index) => {
+              {task.assigned_to.slice(0, 3).map((userId, index) => {
                 const member = familyMembers[userId]
                 return (
                   <div
@@ -193,9 +179,9 @@ export function TaskCard({
                   </div>
                 )
               })}
-              {task.assignedTo.length > 3 && (
+              {task.assigned_to.length > 3 && (
                 <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground -ml-2">
-                  +{task.assignedTo.length - 3}
+                  +{task.assigned_to.length - 3}
                 </div>
               )}
             </div>
@@ -223,12 +209,12 @@ export function TaskCard({
       </div>
 
       {/* Progress Bar for Time Tracking */}
-      {task.timeTracking?.estimatedDuration && task.timeTracking?.actualDuration && (
+      {task.estimated_duration && task.actual_duration && (
         <div className="mt-3 pt-3 border-t border-muted">
           <div className="flex justify-between text-xs text-muted-foreground mb-1">
             <span>Time Progress</span>
             <span>
-              {task.timeTracking.actualDuration}/{task.timeTracking.estimatedDuration}m
+              {task.actual_duration}/{task.estimated_duration}m
             </span>
           </div>
           <div className="w-full bg-muted rounded-full h-1">
@@ -236,7 +222,7 @@ export function TaskCard({
               className="bg-primary h-1 rounded-full transition-smooth"
               style={{
                 width: `${Math.min(
-                  (task.timeTracking.actualDuration / task.timeTracking.estimatedDuration) * 100,
+                  (task.actual_duration / task.estimated_duration) * 100,
                   100
                 )}%`
               }}

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { Task, TaskFilter, TaskSort, SmartListType } from '@/lib/types/task'
-import { TaskRepository } from '@/lib/repositories/taskRepository'
+import { SupabaseTaskRepository } from '@/lib/repositories/supabaseTaskRepository'
 
 interface TaskState {
   // Data
@@ -15,17 +15,17 @@ interface TaskState {
   selectedTasks: string[]
   
   // Repository
-  repository: TaskRepository | null
+  repository: SupabaseTaskRepository | null
   unsubscribe: (() => void) | null
   
   // Actions
   initializeRepository: (familyId: string) => void
   loadTasks: (filter?: TaskFilter, sort?: TaskSort) => Promise<void>
   loadSmartList: (type: SmartListType, userId?: string) => Promise<void>
-  createTask: (taskData: Omit<Task, 'id' | 'createdAt' | 'lastModified' | 'version'>) => Promise<void>
-  updateTask: (taskId: string, updates: Partial<Task>, userId: string) => Promise<void>
-  deleteTask: (taskId: string, userId: string) => Promise<void>
-  completeTask: (taskId: string, userId: string, actualDuration?: number) => Promise<void>
+  createTask: (taskData: Omit<Task, 'id' | 'created_at' | 'updated_at'>) => Promise<void>
+  updateTask: (taskId: string, updates: Partial<Task>) => Promise<void>
+  deleteTask: (taskId: string) => Promise<void>
+  completeTask: (taskId: string, actualDuration?: number) => Promise<void>
   
   // Real-time sync
   startRealTimeSync: (filter?: TaskFilter, userId?: string) => void
@@ -64,7 +64,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   // Initialize repository
   initializeRepository: (familyId: string) => {
-    const repository = new TaskRepository(familyId)
+    const repository = new SupabaseTaskRepository(familyId)
     set({ repository })
   },
 
@@ -130,7 +130,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   // Update task
-  updateTask: async (taskId: string, updates: Partial<Task>, userId: string) => {
+  updateTask: async (taskId: string, updates: Partial<Task>) => {
     const { repository } = get()
     if (!repository) return
 
@@ -138,13 +138,13 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     set(state => ({
       tasks: state.tasks.map(task => 
         task.id === taskId 
-          ? { ...task, ...updates, lastModified: new Date() as any, modifiedBy: userId }
+          ? { ...task, ...updates, updated_at: new Date().toISOString() }
           : task
       )
     }))
 
     try {
-      await repository.updateTask(taskId, updates, userId)
+      await repository.updateTask(taskId, updates)
       get().applyFilterAndSort()
     } catch (error: any) {
       // Revert optimistic update on error
@@ -155,7 +155,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   // Delete task
-  deleteTask: async (taskId: string, userId: string) => {
+  deleteTask: async (taskId: string) => {
     const { repository } = get()
     if (!repository) return
 
@@ -165,7 +165,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     }))
 
     try {
-      await repository.deleteTask(taskId, userId)
+      await repository.deleteTask(taskId)
       get().applyFilterAndSort()
     } catch (error: any) {
       set({ error: error.message })
@@ -175,7 +175,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   // Complete task
-  completeTask: async (taskId: string, userId: string, actualDuration?: number) => {
+  completeTask: async (taskId: string, actualDuration?: number) => {
     const { repository } = get()
     if (!repository) return
 
@@ -186,16 +186,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           ? { 
               ...task, 
               status: 'completed', 
-              completedAt: new Date() as any,
-              lastModified: new Date() as any,
-              modifiedBy: userId
+              completed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             }
           : task
       )
     }))
 
     try {
-      await repository.completeTask(taskId, userId, actualDuration)
+      await repository.completeTask(taskId, actualDuration)
       get().applyFilterAndSort()
     } catch (error: any) {
       set({ error: error.message })
@@ -259,7 +258,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       }
       if (currentFilter.assignedTo && currentFilter.assignedTo.length > 0) {
         filtered = filtered.filter(task => 
-          task.assignedTo.some(id => currentFilter.assignedTo!.includes(id))
+          task.assigned_to.some(id => currentFilter.assignedTo!.includes(id))
         )
       }
       if (currentFilter.priority && currentFilter.priority.length > 0) {

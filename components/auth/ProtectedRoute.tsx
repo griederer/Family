@@ -21,8 +21,12 @@ export function ProtectedRoute({
     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
   </div>
 }: ProtectedRouteProps) {
-  const { user, familyMember, loading, isParent, isAdmin } = useAuth()
+  const { user, familyMember, loading } = useAuth()
   const router = useRouter()
+
+  // Computed properties
+  const isParent = familyMember?.role === 'parent' || familyMember?.role === 'admin'
+  const isAdmin = familyMember?.role === 'admin'
 
   useEffect(() => {
     if (!loading) {
