@@ -19,15 +19,24 @@ export default function OnboardingPage() {
   const router = useRouter()
 
   const createFamily = async () => {
-    if (!user || !familyName.trim()) return
+    console.log('Creating family with name:', familyName)
+    console.log('User:', user)
+    
+    if (!user || !familyName.trim()) {
+      console.log('Early return - missing user or family name')
+      return
+    }
 
     setIsLoading(true)
     setError('')
 
     try {
-      await authCreateFamily(familyName)
+      console.log('Calling authCreateFamily...')
+      const result = await authCreateFamily(familyName)
+      console.log('Family created successfully:', result)
       router.push('/dashboard')
     } catch (error: any) {
+      console.error('Error creating family:', error)
       setError(error.message)
     } finally {
       setIsLoading(false)
