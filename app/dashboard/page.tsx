@@ -97,18 +97,24 @@ export default function DashboardPage() {
               <CardTitle className="text-lg">Quick Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button className="w-full justify-start text-sm h-9" variant="ghost">
-                <CheckSquare className="w-4 h-4 mr-3" />
-                Add New Task
-              </Button>
-              <Button className="w-full justify-start text-sm h-9" variant="ghost">
-                <Calendar className="w-4 h-4 mr-3" />
-                Create Event
-              </Button>
-              <Button className="w-full justify-start text-sm h-9" variant="ghost">
-                <ShoppingCart className="w-4 h-4 mr-3" />
-                Add to Grocery List
-              </Button>
+              <Link href="/dashboard/tasks">
+                <Button className="w-full justify-start text-sm h-9" variant="ghost">
+                  <CheckSquare className="w-4 h-4 mr-3" />
+                  Add New Task
+                </Button>
+              </Link>
+              <Link href="/dashboard/calendar">
+                <Button className="w-full justify-start text-sm h-9" variant="ghost">
+                  <Calendar className="w-4 h-4 mr-3" />
+                  Create Event
+                </Button>
+              </Link>
+              <Link href="/dashboard/grocery">
+                <Button className="w-full justify-start text-sm h-9" variant="ghost">
+                  <ShoppingCart className="w-4 h-4 mr-3" />
+                  Add to Grocery List
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>

@@ -98,10 +98,10 @@ CREATE POLICY "Users can view family members in their families" ON family_member
 CREATE POLICY "Admins can insert family members" ON family_members
     FOR INSERT WITH CHECK (
         EXISTS (
-            SELECT 1 FROM family_members 
-            WHERE family_members.family_id = family_members.family_id 
-            AND family_members.user_id = auth.uid()
-            AND family_members.role = 'admin'
+            SELECT 1 FROM family_members existing_members
+            WHERE existing_members.family_id = family_members.family_id 
+            AND existing_members.user_id = auth.uid()
+            AND existing_members.role = 'admin'
         )
         OR user_id = auth.uid() -- Users can add themselves
     );

@@ -114,10 +114,12 @@ export function Sidebar() {
       {/* Footer */}
       <div className="p-4 border-t border-border">
         <div className="flex items-center justify-between">
-          <button className="sidebar-item flex items-center space-x-2 text-sm">
-            <Plus className="w-4 h-4" />
-            <span>New List</span>
-          </button>
+          <Link href="/dashboard/tasks">
+            <button className="sidebar-item flex items-center space-x-2 text-sm">
+              <Plus className="w-4 h-4" />
+              <span>New Task</span>
+            </button>
+          </Link>
           <Link href="/dashboard/settings">
             <button className="sidebar-item p-2">
               <Settings className="w-4 h-4" />

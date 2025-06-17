@@ -220,58 +220,79 @@ export class SupabaseTaskRepository {
 
   // Smart lists implementation
   async getSmartList(type: SmartListType, userId?: string): Promise<Task[]> {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const weekEnd = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000)
+    if (this.isDemoMode) {
+      // Return mock results for demo mode
+      return []
+    }
+
+    const today = new Date().toISOString().split('T')[0]
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const weekEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
+    let query = supabase
+      .from('tasks')
+      .select('*')
+      .eq('family_id', this.familyId)
 
     switch (type) {
       case 'today':
-        return this.getTasks({
-          status: ['pending', 'in_progress'],
-          dueDate: {
-            start: today.toISOString().split('T')[0],
-            end: new Date(today.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-          }
-        }, { field: 'due_date', direction: 'asc' })
+        query = query
+          .in('status', ['pending', 'in_progress'])
+          .eq('due_date', today)
+          .order('due_date', { ascending: true })
+          .order('priority', { ascending: false })
+        break
 
       case 'this_week':
-        return this.getTasks({
-          status: ['pending', 'in_progress'],
-          dueDate: {
-            start: today.toISOString().split('T')[0],
-            end: weekEnd.toISOString().split('T')[0]
-          }
-        }, { field: 'due_date', direction: 'asc' })
+        query = query
+          .in('status', ['pending', 'in_progress'])
+          .gte('due_date', today)
+          .lte('due_date', weekEnd)
+          .order('due_date', { ascending: true })
+          .order('priority', { ascending: false })
+        break
 
       case 'overdue':
-        return this.getTasks({
-          status: ['pending', 'in_progress'],
-          dueDate: {
-            end: today.toISOString().split('T')[0]
-          }
-        }, { field: 'due_date', direction: 'asc' })
+        query = query
+          .in('status', ['pending', 'in_progress'])
+          .lt('due_date', today)
+          .order('due_date', { ascending: true })
+        break
 
       case 'assigned_to_me':
         if (!userId) return []
-        return this.getTasks({
-          assignedTo: [userId],
-          status: ['pending', 'in_progress']
-        })
+        query = query
+          .in('status', ['pending', 'in_progress'])
+          .contains('assigned_to', [userId])
+          .order('due_date', { ascending: true })
+          .order('priority', { ascending: false })
+        break
 
       case 'high_priority':
-        return this.getTasks({
-          priority: ['urgent', 'high'],
-          status: ['pending', 'in_progress']
-        }, { field: 'priority', direction: 'desc' })
+        query = query
+          .in('status', ['pending', 'in_progress'])
+          .in('priority', ['urgent', 'high'])
+          .order('priority', { ascending: false })
+          .order('due_date', { ascending: true })
+        break
 
       case 'completed':
-        return this.getTasks({
-          status: ['completed']
-        }, { field: 'completed_at', direction: 'desc' })
+        query = query
+          .eq('status', 'completed')
+          .order('completed_at', { ascending: false })
+        break
 
       default:
         return []
     }
+
+    const { data, error } = await query
+
+    if (error) {
+      throw new Error(`Failed to get smart list: ${error.message}`)
+    }
+
+    return data.map(row => this.mapRowToTask(row))
   }
 
   // Complete task

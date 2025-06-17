@@ -17,7 +17,7 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { user, loading: authLoading, createFamily: authCreateFamily, familyMember } = useAuth()
+  const { user, loading: authLoading, createFamily: authCreateFamily, joinFamily: authJoinFamily, familyMember } = useAuth()
   const router = useRouter()
 
   // Handle authentication state and redirects
@@ -118,8 +118,8 @@ export default function OnboardingPage() {
 
     try {
       console.log('Attempting to join family with code:', trimmedCode)
-      // For now, treat invite code as family ID - in production you'd have a proper invite system
-      const result = await authCreateFamily(trimmedCode)
+      // Use the proper joinFamily function instead of createFamily
+      const result = await authJoinFamily(trimmedCode)
       console.log('Joined family successfully:', result)
       
       await new Promise(resolve => setTimeout(resolve, 100))

@@ -16,6 +16,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { supabase } from '@/lib/supabase/config'
 
 interface ThingsTaskListProps {
   smartListType?: SmartListType
@@ -85,13 +86,49 @@ export function ThingsTaskList({ smartListType, initialFilter }: ThingsTaskListP
     clearError
   } = useTaskStore()
 
-  // Mock family members
-  const familyMembers = {
-    [user?.id || '']: { name: user?.user_metadata?.display_name || 'You' },
-    'mom': { name: 'Mom' },
-    'dad': { name: 'Dad' },
-    'sarah': { name: 'Sarah' }
-  }
+  // Family members state
+  const [familyMembers, setFamilyMembers] = useState<Record<string, { name: string }>>({})
+
+  // Load family members
+  useEffect(() => {
+    const loadFamilyMembers = async () => {
+      if (!familyMember?.family_id) return
+      
+      try {
+        // In demo mode, use mock data
+        if (typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true') {
+          setFamilyMembers({
+            [user?.id || '']: { name: user?.user_metadata?.display_name || 'Demo User' },
+            'demo-user-2': { name: 'Family Member 2' },
+            'demo-user-3': { name: 'Family Member 3' }
+          })
+          return
+        }
+
+        // In real mode, fetch from Supabase
+        const { data: members, error } = await supabase
+          .from('family_members')
+          .select('user_id, display_name')
+          .eq('family_id', familyMember.family_id)
+
+        if (error) {
+          console.error('Error loading family members:', error)
+          return
+        }
+
+        const membersMap = members.reduce((acc, member) => {
+          acc[member.user_id] = { name: member.display_name }
+          return acc
+        }, {} as Record<string, { name: string }>)
+
+        setFamilyMembers(membersMap)
+      } catch (error) {
+        console.error('Error loading family members:', error)
+      }
+    }
+
+    loadFamilyMembers()
+  }, [familyMember?.family_id, user?.id])
 
   // Initialize repository and load data
   useEffect(() => {
