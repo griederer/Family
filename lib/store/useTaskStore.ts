@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { Task, TaskFilter, TaskSort, SmartListType } from '@/lib/types/task'
 import { SupabaseTaskRepository } from '@/lib/repositories/supabaseTaskRepository'
+import { MockTaskRepository } from '@/lib/repositories/mockTaskRepository'
 
 interface TaskState {
   // Data
@@ -15,7 +16,7 @@ interface TaskState {
   selectedTasks: string[]
   
   // Repository
-  repository: SupabaseTaskRepository | null
+  repository: SupabaseTaskRepository | MockTaskRepository | null
   unsubscribe: (() => void) | null
   
   // Actions
@@ -64,7 +65,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   // Initialize repository
   initializeRepository: (familyId: string) => {
-    const repository = new SupabaseTaskRepository(familyId)
+    const isDemoMode = typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true'
+    const repository = isDemoMode 
+      ? new MockTaskRepository() 
+      : new SupabaseTaskRepository(familyId)
     set({ repository })
   },
 

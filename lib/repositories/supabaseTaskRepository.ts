@@ -8,9 +8,11 @@ type TaskUpdate = Database['public']['Tables']['tasks']['Update']
 
 export class SupabaseTaskRepository {
   private familyId: string
+  private isDemoMode: boolean
 
   constructor(familyId: string) {
     this.familyId = familyId
+    this.isDemoMode = typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true'
   }
 
   // Convert database row to Task interface

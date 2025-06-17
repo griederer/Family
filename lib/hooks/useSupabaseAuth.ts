@@ -19,7 +19,28 @@ export function useSupabaseAuth() {
   const [familyMember, setFamilyMember] = useState<FamilyMember | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // Check for demo mode
+  const isDemoMode = typeof window !== 'undefined' && localStorage.getItem('demo_mode') === 'true'
+
   useEffect(() => {
+    // Check for demo mode first
+    if (isDemoMode) {
+      const demoUser = localStorage.getItem('demo_user')
+      const demoFamilyMemberData = localStorage.getItem('demo_family_member')
+      
+      if (demoUser) {
+        setUser(JSON.parse(demoUser) as any)
+        setSession({} as any) // Mock session
+      }
+      
+      if (demoFamilyMemberData) {
+        setFamilyMember(JSON.parse(demoFamilyMemberData))
+      }
+      
+      setLoading(false)
+      return
+    }
+
     // Get initial session
     const getInitialSession = async () => {
       console.log('Getting initial session...')
