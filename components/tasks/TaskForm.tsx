@@ -44,9 +44,59 @@ export function TaskForm({ task, onSave, onCancel, familyMembers }: TaskFormProp
   const [estimatedDuration, setEstimatedDuration] = useState(
     task?.estimated_duration?.toString() || ''
   )
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    // Required field validation
+    if (!title.trim()) {
+      newErrors.title = 'Task title is required'
+    } else if (title.trim().length < 3) {
+      newErrors.title = 'Task title must be at least 3 characters'
+    } else if (title.trim().length > 500) {
+      newErrors.title = 'Task title must be less than 500 characters'
+    }
+
+    // Description validation
+    if (description.trim().length > 2000) {
+      newErrors.description = 'Description must be less than 2000 characters'
+    }
+
+    // Due date validation
+    if (dueDate) {
+      const selectedDate = new Date(dueDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      if (selectedDate < today) {
+        newErrors.dueDate = 'Due date cannot be in the past'
+      }
+    }
+
+    // Estimated duration validation
+    if (estimatedDuration) {
+      const duration = parseInt(estimatedDuration)
+      if (isNaN(duration) || duration <= 0) {
+        newErrors.estimatedDuration = 'Estimated duration must be a positive number'
+      } else if (duration > 480) {
+        newErrors.estimatedDuration = 'Estimated duration cannot exceed 8 hours (480 minutes)'
+      }
+    }
+
+    // Assignment validation
+    if (assignedTo.length === 0) {
+      newErrors.assignedTo = 'Please assign the task to at least one person'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSave = () => {
-    if (!title.trim()) return
+    if (!validateForm()) {
+      return
+    }
 
     const taskData: Partial<Task> = {
       title: title.trim(),
@@ -104,10 +154,20 @@ export function TaskForm({ task, onSave, onCancel, familyMembers }: TaskFormProp
             <Input
               placeholder="Task title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="text-lg font-medium border-0 bg-transparent px-0 focus:ring-0 placeholder:text-muted-foreground"
+              onChange={(e) => {
+                setTitle(e.target.value)
+                if (errors.title) {
+                  setErrors(prev => ({ ...prev, title: '' }))
+                }
+              }}
+              className={`text-lg font-medium border-0 bg-transparent px-0 focus:ring-0 placeholder:text-muted-foreground ${
+                errors.title ? 'border-b border-destructive' : ''
+              }`}
               autoFocus
             />
+            {errors.title && (
+              <p className="text-xs text-destructive mt-1">{errors.title}</p>
+            )}
           </div>
 
           {/* Description */}
@@ -115,9 +175,19 @@ export function TaskForm({ task, onSave, onCancel, familyMembers }: TaskFormProp
             <textarea
               placeholder="Notes"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full min-h-20 p-0 border-0 bg-transparent resize-none focus:outline-none text-sm text-muted-foreground placeholder:text-muted-foreground"
+              onChange={(e) => {
+                setDescription(e.target.value)
+                if (errors.description) {
+                  setErrors(prev => ({ ...prev, description: '' }))
+                }
+              }}
+              className={`w-full min-h-20 p-0 border-0 bg-transparent resize-none focus:outline-none text-sm text-muted-foreground placeholder:text-muted-foreground ${
+                errors.description ? 'border border-destructive rounded' : ''
+              }`}
             />
+            {errors.description && (
+              <p className="text-xs text-destructive mt-1">{errors.description}</p>
+            )}
           </div>
 
           {/* Priority */}
