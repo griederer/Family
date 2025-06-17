@@ -38,15 +38,20 @@ export default function Home() {
           />
         </div>
 
-        <div className="text-center">
+        <div className="text-center space-x-4">
           <Link href="/auth/signup">
-            <Button size="lg" className="mr-4">
+            <Button size="lg">
               Get Started
             </Button>
           </Link>
           <Link href="/auth/login">
             <Button size="lg" variant="outline">
               Sign In
+            </Button>
+          </Link>
+          <Link href="/demo">
+            <Button size="lg" variant="ghost">
+              Try Demo
             </Button>
           </Link>
         </div>
