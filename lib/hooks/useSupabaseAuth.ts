@@ -84,8 +84,6 @@ export function useSupabaseAuth() {
   }
 
   const signUp = async (email: string, password: string, displayName: string) => {
-    console.log('Attempting signup with Supabase URL:', supabase.supabaseUrl)
-    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -97,11 +95,9 @@ export function useSupabaseAuth() {
     })
     
     if (error) {
-      console.error('Supabase signup error:', error)
       throw new Error(`Signup failed: ${error.message}`)
     }
     
-    console.log('Signup successful:', data)
     return data
   }
 
@@ -127,36 +123,67 @@ export function useSupabaseAuth() {
   }
 
   const createFamily = async (familyName: string) => {
-    if (!user) throw new Error('No authenticated user')
+    if (!user) {
+      throw new Error('No authenticated user found. Please log in again.')
+    }
 
-    // Create family
-    const { data: family, error: familyError } = await supabase
-      .from('families')
-      .insert({
-        name: familyName,
-        created_by: user.id,
-      })
-      .select()
-      .single()
+    console.log('Starting family creation process:', {
+      familyName,
+      userId: user.id,
+      userEmail: user.email
+    })
 
-    if (familyError) throw familyError
+    try {
+      // Create family
+      console.log('Creating family record...')
+      const { data: family, error: familyError } = await supabase
+        .from('families')
+        .insert({
+          name: familyName,
+          created_by: user.id,
+        })
+        .select()
+        .single()
 
-    // Add user as admin member
-    const { data: member, error: memberError } = await supabase
-      .from('family_members')
-      .insert({
-        family_id: family.id,
-        user_id: user.id,
-        role: 'admin',
-        display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
-      })
-      .select()
-      .single()
+      if (familyError) {
+        console.error('Family creation error:', familyError)
+        throw new Error(`Failed to create family: ${familyError.message}`)
+      }
 
-    if (memberError) throw memberError
+      console.log('Family created successfully:', family)
 
-    setFamilyMember(member)
-    return { family, member }
+      // Add user as admin member
+      console.log('Adding user as admin member...')
+      const { data: member, error: memberError } = await supabase
+        .from('family_members')
+        .insert({
+          family_id: family.id,
+          user_id: user.id,
+          role: 'admin',
+          display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || 'User',
+        })
+        .select()
+        .single()
+
+      if (memberError) {
+        console.error('Member creation error:', memberError)
+        // Try to clean up the family record if member creation fails
+        await supabase.from('families').delete().eq('id', family.id)
+        throw new Error(`Failed to add family member: ${memberError.message}`)
+      }
+
+      console.log('Family member created successfully:', member)
+
+      setFamilyMember(member)
+      return { family, member }
+    } catch (error: any) {
+      console.error('Error in createFamily:', error)
+      // Re-throw with more user-friendly message if needed
+      if (error.message.includes('duplicate key')) {
+        throw new Error('A family with this name already exists. Please choose a different name.')
+      }
+      throw error
+    }
   }
 
   const joinFamily = async (familyId: string, role: 'parent' | 'child' = 'parent') => {
