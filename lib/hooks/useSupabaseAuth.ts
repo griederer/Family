@@ -84,6 +84,8 @@ export function useSupabaseAuth() {
   }
 
   const signUp = async (email: string, password: string, displayName: string) => {
+    console.log('Attempting signup with Supabase URL:', supabase.supabaseUrl)
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -94,7 +96,12 @@ export function useSupabaseAuth() {
       },
     })
     
-    if (error) throw error
+    if (error) {
+      console.error('Supabase signup error:', error)
+      throw new Error(`Signup failed: ${error.message}`)
+    }
+    
+    console.log('Signup successful:', data)
     return data
   }
 
