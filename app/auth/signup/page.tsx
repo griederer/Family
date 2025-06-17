@@ -39,8 +39,22 @@ export default function SignupPage() {
     }
 
     try {
-      await signUp(email, password, displayName)
-      router.push('/auth/onboarding')
+      const result = await signUp(email, password, displayName)
+      console.log('Signup result:', result)
+      
+      if (result.user && !result.session) {
+        // Email confirmation required
+        setError('Please check your email and click the confirmation link to complete registration.')
+        return
+      }
+      
+      if (result.session) {
+        // User is logged in immediately
+        router.push('/auth/onboarding')
+      } else {
+        setError('Registration completed but you need to log in.')
+        router.push('/auth/login')
+      }
     } catch (error: any) {
       setError(error.message)
     } finally {
